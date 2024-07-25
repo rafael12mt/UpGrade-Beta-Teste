@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Área Social</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+        }
+        #formularioPublicacao {
+            background: #fff;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #feedPublicacoes {
+            background: #fff;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        textarea, input[type="file"], input[type="text"] {
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #ff6600;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #e65c00;
+        }
+        .post {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .post img, .post video {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="formularioPublicacao">
+            <h2>Criar Publicação</h2>
+            <select id="tipoPublicacao" onchange="toggleFields()">
+                <option value="texto">Texto</option>
+                <option value="imagem">Imagem</option>
+                <option value="video">Vídeo</option>
+                <option value="arquivo">Arquivo</option>
+                <option value="link">Link</option>
+            </select>
+            <textarea id="textoPublicacao" placeholder="Escreva seu texto aqui..."></textarea>
+            <input type="file" id="arquivoPublicacao" style="display: none;">
+            <input type="text" id="linkPublicacao" placeholder="Insira o link aqui..." style="display: none;">
+            <button onclick="criarPublicacao()">Publicar</button>
+        </div>
+
+        <div id="feedPublicacoes">
+            <!-- As publicações aparecerão aqui -->
+        </div>
+    </div>
+
+    <!-- Importando os SDKs do Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-storage.js"></script>
+
+    <!-- Importando a configuração do Firebase -->
+    <script src="firebase-config.js"></script>
+
+    <!-- JavaScript -->
+    <script>
+        // Função para alternar a visibilidade dos campos com base no tipo de publicação selecionado
+        function toggleFields() {
+            const tipo = document.getElementById('tipoPublicacao').value;
+            document.getElementById('textoPublicacao').style.display = tipo === 'texto' ? 'block' : 'none';
+            document.getElementById('arquivoPublicacao').style.display = tipo === 'imagem' || tipo === 'video' || tipo === 'arquivo' ? 'block' : 'none';
+            document.getElementById('linkPublicacao').style.display = tipo === 'link' ? 'block' : 'none';
+        }
+
+        // Função para criar uma nova publicação
+        function criarPublicacao() {
+            const tipo = document.getElementById('tipoPublicacao').value;
+            const texto = document.getElementById('textoPublicacao').value;
+            const arquivo = document.getElementById('arquivoPublicacao').files[0];
+            const link = document.getElementById('linkPublicacao').value;
+            const user = firebase.auth().currentUser;
+
+            if (!user) {
+                alert('Você precisa estar logado para criar uma publicação.');
+                return;
+            }
+
+            const userId = user.uid;
+            const postId = firebase.database().ref().child('publicacoes').child(userId).push().key;
+            const timestamp = Date.now();
+
+            const publicacao = {
+                tipo: tipo,
+                texto: texto,
+                timestamp: timestamp
+            };
+
+            if (tipo === 'imagem' || tipo === 'video' || tipo === 'arquivo') {
+                const storageRef = firebase.storage().ref(`publicacoes/${userId}/${postId}/${arquivo.name}`);
+                storageRef.put(arquivo).then(snapshot => {
+                    return snapshot.ref.getDownloadURL();
+                }).then(downloadURL => {
+                    publicacao.conteudo = downloadURL;
+                    salvarPublicacao(userId, postId, publicacao);
+                }).catch(error => {
+                    console.error('Erro ao fazer upload do arquivo:', error);
+                });
+            } else if (tipo === 'link') {
+                publicacao.conteudo = link;
+                salvarPublicacao(userId, postId, publicacao);
+            } else {
+                salvarPublicacao(userId, postId, publicacao);
+            }
+        }
+
+        // Função para salvar a publicação no banco de dados
+        function salvarPublicacao(userId, postId, publicacao) {
+            firebase.database().ref(`publicacoes/${userId}/${postId}`).set(publicacao).then(() => {
+                console.log('Publicação salva com sucesso!');
+                document.getElementById('textoPublicacao').value = '';
+                document.getElementById('arquivoPublicacao').value = '';
+                document.getElementById('linkPublicacao').value = '';
+                carregarPublicacoes();
+            }).catch(error => {
+                console.error('Erro ao salvar a publicação:', error);
+            });
+        }
+
+        // Função para carregar e exibir as publicações
+        function carregarPublicacoes() {
+            const feed = document.getElementById('feedPublicacoes');
+            feed.innerHTML = '';
+            firebase.database().ref('publicacoes').on('child_added', snapshot => {
+                snapshot.forEach(childSnapshot => {
+                    const publicacao = childSnapshot.val();
+                    const postElement = document.createElement('div');
+                    postElement.className = 'post';
+                    postElement.innerHTML = `
+                        ${publicacao.tipo === 'texto' ? `<p>${publicacao.texto}</p>` : ''}
+                        ${publicacao.tipo === 'imagem' ? `<img src="${publicacao.conteudo}" alt="Imagem">` : ''}
+                        ${publicacao.tipo === 'video' ? `<video src="${publicacao.conteudo}" controls></video>` : ''}
+                        ${publicacao.tipo === 'arquivo' ? `<a href="${publicacao.conteudo}" download>Baixar Arquivo</a>` : ''}
+                        ${publicacao.tipo === 'link' ? `<a href="${publicacao.conteudo}" target="_blank">${publicacao.conteudo}</a>` : ''}
+                    `;
+                    feed.appendChild(postElement);
+                });
+            });
+        }
+
+        // Carregar as publicações ao carregar a página
+        window.onload = function() {
+            carregarPublicacoes();
+        };
+    </script>
+</body>
+</html>

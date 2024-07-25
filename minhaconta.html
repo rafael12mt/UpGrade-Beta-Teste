@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Conta - UpGrade</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            color: white;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            transition: background-color 0.5s;
+            height: 150px;
+            background-color: #ff6600;
+        }
+        .container {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            margin-top: 150px; /* Ajuste para o header fixo */
+            flex-direction: column;
+            text-align: center;
+        }
+        .profile-section {
+            position: relative;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+        }
+        .profile-picture {
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            margin-top: -50px; /* 50% fora do banner */
+            border: 5px solid white;
+            background-color: white;
+        }
+        .profile-details {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .profile-details h2, .profile-details p {
+            margin: 5px 0;
+        }
+        .text-box {
+            margin-top: 20px;
+            width: 200%;
+        }
+        .text-box textarea {
+            padding: 100px;
+            max-width: 90%;
+            height: 100%;
+            max-height: 0%;
+            resize: none;
+            border: 1px solid #ccc;
+        }
+        .color-picker {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        .color-picker label {
+            margin-right: 10px;
+        }
+        .nav-menu {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            z-index: 1000;
+        }
+        .menu-icon {
+            cursor: pointer;
+            width: 35px;
+            height: 5px;
+            background-color: #ff6600;
+            margin: 6px 0;
+            transition: 0.4s;
+        }
+        .menu-content {
+            display: none;
+            background-color: #ff6600;
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 150px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
+        }
+        .menu-content a {
+            color: white;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+        .menu-content a:hover {
+            background-color: #cc5200;
+        }
+    </style>
+</head>
+<body>
+    <header id="header">
+        <!-- Header apenas com a cor de fundo -->
+    </header>
+    
+    <div class="container">
+        <div class="profile-section">
+            <img src="default-profile.png" id="profilePicture" class="profile-picture" alt="Profile Picture"> <!-- Foto de perfil -->
+            <div class="profile-details">
+                <h2 id="username">Nome de Usuário</h2> <!-- Nome de usuário -->
+                <p id="fullname">Nome Completo</p> <!-- Nome completo -->
+                <p id="genderDisplay">Gênero</p> <!-- Gênero -->
+                <div class="text-box">
+                    <textarea id="userText" maxlength="234" placeholder="Digite algo sobre você..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav-menu">
+        <div class="menu-icon" onclick="toggleMenu()"></div>
+        <div class="menu-icon" onclick="toggleMenu()"></div>
+        <div class="menu-icon" onclick="toggleMenu()"></div>
+        <div class="menu-content" id="menuContent">
+            <a href="index.html">Home</a>
+            <a href="configsite.html">Configurações</a>
+            <a href="socialarea.html">Social</a>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="config.js"></script>
+    <script>
+        // Função para carregar os dados do usuário
+        function loadUserProfile() {
+            firebase.auth().onAuthStateChanged(user => {
+                if (user) {
+                    var userId = user.uid;
+                    firebase.database().ref('users/' + userId).once('value').then(snapshot => {
+                        var userData = snapshot.val();
+                        if (userData) {
+                            if (userData.username) {
+                                document.getElementById('username').textContent = userData.username;
+                            }
+                            if (userData.nome) {
+                                document.getElementById('fullname').textContent = userData.nome;
+                            }
+                            if (userData.genero) {
+                                document.getElementById('genderDisplay').textContent = userData.genero;
+                            }
+                            if (userData.userText) {
+                                document.getElementById('userText').value = userData.userText;
+                            }
+                            if (userData.bannerColor) {
+                                document.getElementById('header').style.backgroundColor = userData.bannerColor;
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        // Função para alternar o menu de navegação
+        function toggleMenu() {
+            var menuContent = document.getElementById('menuContent');
+            if (menuContent.style.display === "block") {
+                menuContent.style.display = "none";
+            } else {
+                menuContent.style.display = "block";
+            }
+        }
+
+        // Carregar perfil ao iniciar a página
+        loadUserProfile();
+    </script>
+</body>
+</html>

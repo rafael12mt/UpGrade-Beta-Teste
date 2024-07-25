@@ -1,0 +1,83 @@
+ <!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Info | UpGrade</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <header>
+        <h2>UpGrade</h2>
+        <nav>
+            <ul>
+                <a href="#"><li>HexaWave</li></a>
+                <a href="#"><li>Updates</li></a>
+                <a href="login.html"><li>Login</li></a>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section id="login">
+            <h2>Introdução</h2>
+            <p>Veja do que se trata a plataforma UpGrade.</p>
+            <div id="divs-section">
+                <h3>Descrição do UpGrade</h3>
+                <p>O UpGrade é uma plataforma inovadora desenvolvida para otimizar a gestão e a segurança de informações e tarefas. Com uma interface intuitiva e diversas funcionalidades integradas, o UpGrade visa fornecer uma solução completa para indivíduos e empresas que buscam eficiência e proteção em seu dia a dia digital.</p>
+            </div>
+            <div id="divs-section">
+                <h3>Objetivo do UpGrade</h3>
+                <p>O principal objetivo do UpGrade é facilitar a vida dos seus usuários, oferecendo ferramentas poderosas para o gerenciamento de rotinas, segurança de dados e acesso a informações atualizadas. Nossa missão é criar um ambiente digital seguro, eficiente e personalizado, onde cada usuário possa maximizar sua produtividade e tranquilidade.</p>
+            </div>
+        </section>
+        <section>
+            <h2>Como Começar</h2>
+            <div id="divs-section">
+                <h3>Cadastro e Acesso</h3>
+                <p>Para começar a usar o UpGrade, é necessário criar uma conta. O processo de cadastro é simples e rápido, garantindo que você tenha acesso imediato às funcionalidades da plataforma. Siga os passos abaixo para se cadastrar e começar a explorar tudo o que o UpGrade tem a oferecer.</p>
+                <a href="cadastro.html"><button>Se Cadastrar</button></a>
+            </div>
+            <div id="divs-section">
+                <h3>Login</h3>
+                <p>Após criar sua conta, você pode fazer login na plataforma de maneira segura. O UpGrade utiliza autenticação multifatorial para proteger suas informações e garantir que apenas você possa acessar seus dados. Veja abaixo como realizar o login:</p>
+                <a href="login.html"><button>Login</button></a>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Adiciona Firebase
+        (function() {
+            const firebaseScript1 = document.createElement('script');
+            firebaseScript1.src = "https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js";
+            document.body.appendChild(firebaseScript1);
+
+            const firebaseScript2 = document.createElement('script');
+            firebaseScript2.src = "https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js";
+            document.body.appendChild(firebaseScript2);
+
+            firebaseScript2.onload = () => {
+                // Inicializa o Firebase
+                const firebaseConfig = {
+                    apiKey: "AIzaSyAioRtryd6TAbpPN9nGRuOBt6S5elWh5rs",
+                    authDomain: "upgradeapp-e2a62.firebaseapp.com",
+                    databaseURL: "https://upgradeapp-e2a62-default-rtdb.firebaseio.com",
+                    projectId: "upgradeapp-e2a62",
+                    storageBucket: "upgradeapp-e2a62.appspot.com",
+                    messagingSenderId: "1045768019442",
+                    appId: "1:1045768019442:web:77151978e85c338c2fdf6b",
+                    measurementId: "G-REL2TTMNR6"
+                };
+                firebase.initializeApp(firebaseConfig);
+
+                // Verifica se o usuário está logado
+                firebase.auth().onAuthStateChanged((user) => {
+                    if (user) {
+                        window.location.href = 'minhaconta.html';
+                    }
+                });
+            };
+        })();
+    </script>
+</body>
+</html>
